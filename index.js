@@ -13,7 +13,7 @@ var validators = require('./lib/validators')
  */
 
 function Validator(schema, referenced, options) {
-  schema.fields = schema.fields || [];
+  schema = schema || [];
 
   if(arguments.length < 3){
     options = referenced;
@@ -26,8 +26,8 @@ function Validator(schema, referenced, options) {
   Transform.call(this, options);
 
   this._validator = {};
-  schema.fields.forEach(function(x){
-    this._validator[x.name] = validators(x.type);
+  schema.forEach(function(x){
+    this._validator[x.name] = validators(x.valueType);
   }, this);
 
   //validate foreign keys

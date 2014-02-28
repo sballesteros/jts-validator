@@ -3,12 +3,12 @@ var validators = require('../lib/validators')
   , Readable = require('stream').Readable
   , assert = require('assert');
 
-describe('json schema table validator', function(){
+describe('json tabular data validator', function(){
 
   describe('validators', function(){
 
     it('should validate string', function(){
-      var f = validators('string');
+      var f = validators('xsd:string');
       assert.equal(f('a'), 'a');
       assert.throws(
         function(){
@@ -18,7 +18,7 @@ describe('json schema table validator', function(){
     });
 
     it('should validate number', function(){
-      var f = validators('number');
+      var f = validators('xsd:double');
       assert.equal(f('1.1e3'), 1.1e3);
       assert.equal(f('0.001'), 0.001);
       assert.equal(f('NA'), null);
@@ -30,7 +30,7 @@ describe('json schema table validator', function(){
     });
 
     it('should validate integer', function(){
-      var f = validators('integer');
+      var f = validators('xsd:integer');
       assert.equal(f('1.1e3'), 1100);
       assert.equal(f('0'), 0);
       assert.equal(f('1.0'), 1);
@@ -47,7 +47,7 @@ describe('json schema table validator', function(){
     });
 
     it('should validate date', function(){
-      var f = validators('date');
+      var f = validators('xsd:date');
       assert.equal(f('2013-11-13').toISOString(), "2013-11-13T00:00:00.000Z");
       assert.throws(
         function(){
@@ -57,12 +57,12 @@ describe('json schema table validator', function(){
     });
 
     it('should validate datetime', function(){
-      var f = validators('datetime');
+      var f = validators('xsd:datetime');
       assert.deepEqual(f('2013-11-13T20:11:21+01:00'), new Date('2013-11-13T20:11:21+01:00'));
     });
 
     it('should validate boolean', function(){
-      var f = validators('boolean');
+      var f = validators('xsd:boolean');
       assert.equal(f('true'), true);
       assert.equal(f('1'), true);
       assert.equal(f('false'), false);
@@ -90,20 +90,17 @@ describe('json schema table validator', function(){
       assert.deepEqual(f('x'), 'x');
     });
 
-
   });
 
 
   describe('validator transform stream', function(){
-    var schema = {
-      "fields": [
-        {"name": "a", "type": "string"},
-        {"name": "b", "type": "integer"},
-        {"name": "c", "type": "number"},
-        {"name": "d", "type": "date"},
-        {"name": "e", "type": "boolean"}
-      ]
-    };
+    var schema = [
+      {"name": "a", "valueType": "xsd:string"},
+      {"name": "b", "valueType": "xsd:integer"},
+      {"name": "c", "valueType": "xsd:double"},
+      {"name": "d", "valueType": "xsd:date"},
+      {"name": "e", "valueType": "xsd:boolean"}
+    ];
 
     it('should create a validator transform stream properly coercing the values even if the values are already coerced', function(done){
 
@@ -183,20 +180,19 @@ describe('json schema table validator', function(){
       });
     });
 
-    it('should work when schema is {}', function(done){
+    it('should work when schema is [] (or undefined)', function(done){
       var expected = {"a": "y", "b": "3", "c": "3.4", "d": "2013/11/15", "e": true};
       var s = new Readable({objectMode:true});
       s.push(expected);
       s.push(null);
 
-      var v = s.pipe(new Validator({}));
+      var v = s.pipe(new Validator([]));
       v.on('data', function(data){
         assert.deepEqual(data, expected);
       });
       v.on('error', function(err) {throw err;});
       v.on('end', done);
     });
-
 
   });
 
